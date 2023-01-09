@@ -22,5 +22,5 @@ jobs:
 name: Update pre-commit hooks
 on: workflow_call
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
