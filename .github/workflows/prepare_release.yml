@@ -31,19 +31,19 @@ jobs:
       - name: Commit development version
         run: git commit -am "Set development version v${{ env.dev_version }}"
       - name: Create Pull Request
-        permissions:
-          pull-requests: write
         uses: peter-evans/create-pull-request@v3
         with:
-          body:
+          body: ""
           branch: prepare_release_v${{ env.version }}
           draft: false
           title: Release v${{ env.version }}
+
 name: Prepare Release
 on:
   workflow_call:
     inputs:
       version:
+        type: string
         description: The version to prepare for release
         required: true
 permissions:
