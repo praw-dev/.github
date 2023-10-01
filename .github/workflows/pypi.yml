@@ -2,8 +2,6 @@ jobs:
   pypi-publish:
     environment: release
     name: Upload release to PyPI
-    permissions:
-      id-token: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -23,3 +21,4 @@ name: Publish Python Package
 on: workflow_call
 permissions:
   contents: read
+  id-token: write
