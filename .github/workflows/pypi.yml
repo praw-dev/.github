@@ -1,24 +1,24 @@
 jobs:
-  release:
-    name: Build and release
+  pypi-publish:
+    environment: release
+    name: Upload release to PyPI
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          python-version: 3.x
+          python-version: '3.x'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install setuptools wheel twine
-      - env:
-          PYPI_UPLOAD: true
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        name: Build and release
-        run: |
-          python setup.py sdist bdist_wheel
-          twine upload dist/*
+          pip install build
+      - name: Build package
+        run: python -m build
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 name: Upload Python Package
 on: workflow_call
 permissions:
