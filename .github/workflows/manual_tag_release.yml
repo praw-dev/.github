@@ -42,5 +42,6 @@ on:
       commit:
         description: The commit the version bump occurred
         required: true
+        type: string
 permissions:
   contents: write
