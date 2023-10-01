@@ -19,7 +19,7 @@ jobs:
         run: python -m build
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-name: Upload Python Package
+name: Publish Python Package
 on: workflow_call
 permissions:
   contents: read
