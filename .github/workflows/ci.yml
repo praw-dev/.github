@@ -93,7 +93,7 @@ jobs:
         run: coverage report -m --fail-under=100
     strategy:
       matrix:
-        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
   test-network:
     if: endsWith(inputs.package, 'praw')
     name: Test Network Request
