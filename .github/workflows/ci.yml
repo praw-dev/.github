@@ -1,15 +1,30 @@
 jobs:
-  complete_coveralls:
-    needs: test-multi-python
+  eval-rules:
+    name: Evaluate Rules
+    outputs:
+      should_run: ${{ steps.eval-rules.outputs.should_run }}
     runs-on: ubuntu-latest
     steps:
-      - name: Coveralls Finished
+      - name: Eval Rules
+        id: eval-rules
+        env:
+          SHOULD_RUN: ${{ github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'  && github.event.pull_request.title == 'Update pre-commit hooks') }}
+        run: echo "should_run=${SHOULD_RUN}" >> "$GITHUB_OUTPUT"
+  complete-coveralls:
+    if: needs.eval-rules.outputs.should_run == 'true'
+    needs: test-multi-python
+    name: Check Coveralls
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
   lint-multi-os:
+    if: needs.eval-rules.outputs.should_run == 'true'
     name: Lint ${{ matrix.os }}
+    needs: eval-rules
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -36,7 +51,9 @@ jobs:
       matrix:
         os: [ macOS-latest, ubuntu-latest, windows-latest ]
   test-multi-os:
+    if: needs.eval-rules.outputs.should_run == 'true'
     name: Test ${{ matrix.os }}
+    needs: eval-rules
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -62,7 +79,9 @@ jobs:
       matrix:
         os: [ macOS-latest, ubuntu-latest, windows-latest ]
   test-multi-python:
+    if: needs.eval-rules.outputs.should_run == 'true'
     name: Test Python ${{ matrix.python-version }}
+    needs: eval-rules
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -95,7 +114,8 @@ jobs:
       matrix:
         python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
   test-network:
-    if: endsWith(inputs.package, 'praw')
+    if: endsWith(inputs.package, 'praw') && needs.eval-rules.outputs.should_run == 'true'
+    needs: eval-rules
     name: Test Network Request
     runs-on: ubuntu-latest
     steps:
