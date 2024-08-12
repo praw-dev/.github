@@ -6,7 +6,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v3
+      - uses: actions/stale@v9
         with:
           close-issue-label: ${{ env.stale-close-label }}
           close-issue-message: This issue was closed because it has been stale for ${{ env.days-before-close }} days with no activity.

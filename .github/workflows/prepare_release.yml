@@ -3,12 +3,12 @@ jobs:
     name: Prepare Release v${{ github.event.inputs.version }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.SSH_DEPLOY_KEY }}
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          cache: 'pip'
+          cache: pip
           python-version: 3.x
       - name: Install dependencies
         run: pip install packaging
@@ -32,7 +32,7 @@ jobs:
       - name: Commit development version
         run: git commit -am "Set development version v${{ env.dev_version }}"
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v6
         with:
           body: ""
           branch: prepare_release_v${{ env.version }}
