@@ -1,6 +1,3 @@
-env:
-  SKIP: no-commit-to-branch
-
 jobs:
   lint-multi-os:
     name: Lint ${{ matrix.os }}
@@ -16,6 +13,8 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install .[lint]
       - name: Run pre-commit hooks
+        env:
+          SKIP: no-commit-to-branch
         uses: pre-commit/action@v3.0.1
       - name: Run sphinx
         if: endsWith(inputs.package, 'praw')
@@ -60,11 +59,6 @@ jobs:
         run: coverage run --source ${{ inputs.package }} --module pytest
         env:
           ENSURE_NO_UNUSED_CASSETTES: 1
-      - name: Submit to coveralls
-        env:
-          COVERALLS_PARALLEL: true
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: coveralls --service=github
       - name: Check coverage
         run: coverage report -m --fail-under=100
     strategy:
