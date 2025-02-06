@@ -2,16 +2,6 @@ env:
   SKIP: no-commit-to-branch
 
 jobs:
-  complete-coveralls:
-    needs: test-multi-python
-    name: Check Coveralls
-    runs-on: ubuntu-latest
-    steps:
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true
   lint-multi-os:
     name: Lint ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
