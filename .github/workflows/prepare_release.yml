@@ -20,7 +20,7 @@ jobs:
           git config --global committer.name GitHub
       - name: Normalize version and update in code
         run: |
-          praw-release bump ${{ github.event.repository.name }} ${{ github.event.inputs.version }} > tmp_version
+          praw-release bump ${{ github.event.inputs.package }} ${{ github.event.inputs.version }} ${{ github.event.inputs.package }}/${{ github.event.inputs.version_file }} > tmp_version
           echo "version=$(cat tmp_version)" >> $GITHUB_ENV
           rm tmp_version
       - name: Commit changes with desired version
