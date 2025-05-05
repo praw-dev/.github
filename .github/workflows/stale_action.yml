@@ -17,8 +17,8 @@ jobs:
           exempt-all-assignees: true
           exempt-all-milestones: true
           exempt-draft-pr: true
-          exempt-issue-labels: Discussion
-          exempt-pr-labels: Discussion
+          exempt-issue-labels: Discussion,⭐️ New Contributor Friendly ⭐️
+          exempt-pr-labels: Discussion,⭐️ New Contributor Friendly ⭐️
           stale-issue-message: |
             This issue is stale because it has been open for ${{ env.days-before-stale }} days with no activity. 
             
