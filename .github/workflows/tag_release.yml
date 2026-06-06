@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 3
-          ssh-key: ${{ secrets.SSH_DEPLOY_KEY }}
+          persist-credentials: false
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           cache: pip
@@ -17,23 +17,22 @@ jobs:
       - name: Extract Version
         run: |
           git checkout HEAD^2^
-          echo "commit=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
           git log --format=%B -n 1 | praw-release extract-version > tmp_version
-          echo "version=$(cat tmp_version)" >> $GITHUB_ENV
+          echo "version=$(cat tmp_version)" >> "$GITHUB_ENV"
           cat tmp_version | python -c 'import sys; from packaging import version; print(int(version.Version(sys.stdin.readline()).is_prerelease))' > tmp_is_prerelease
-          echo "is_prerelease=$(cat tmp_is_prerelease)" >> $GITHUB_ENV
+          echo "is_prerelease=$(cat tmp_is_prerelease)" >> "$GITHUB_ENV"
       - name: Extract Change Log
-        run: praw-release changes ${{ env.version }} > version_changelog
+        run: praw-release changes "$version" > version_changelog
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         name: Create GitHub Release
         run: |
-          gh release create "v${{ env.version }}" \
-            --draft \
-            --notes-file version_changelog \
-            --prerelease=${{ env.is_prerelease == '1' }} \
-            --target "${{ env.commit }}" \
-            --title "v${{ env.version }}"
+          args=(--draft --notes-file version_changelog --target "$commit" --title "v$version")
+          if [ "$is_prerelease" = "1" ]; then
+            args+=(--prerelease)
+          fi
+          gh release create "v$version" "${args[@]}"
 name: Tag Release
 on: workflow_call
 permissions:
