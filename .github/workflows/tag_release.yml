@@ -4,16 +4,16 @@ jobs:
     name: Tag Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 3
           ssh-key: ${{ secrets.SSH_DEPLOY_KEY }}
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           cache: pip
           python-version: 3.x
       - name: Install dependencies
-        run: pip install https://github.com/praw-dev/praw-release/archive/main.zip
+        run: pip install https://github.com/praw-dev/praw-release/archive/9a9d3162a6bdfcdfa1bac273734f86ddbfdafe40.zip
       - name: Extract Version
         run: |
           git checkout HEAD^2^
@@ -25,16 +25,15 @@ jobs:
       - name: Extract Change Log
         run: praw-release changes ${{ env.version }} > version_changelog
       - env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         name: Create GitHub Release
-        uses: actions/create-release@v1
-        with:
-          body_path: version_changelog
-          commitish: ${{ env.commit }}
-          draft: true
-          prerelease: ${{ env.is_prerelease == '1' }}
-          release_name: v${{ env.version }}
-          tag_name: v${{ env.version }}
+        run: |
+          gh release create "v${{ env.version }}" \
+            --draft \
+            --notes-file version_changelog \
+            --prerelease=${{ env.is_prerelease == '1' }} \
+            --target "${{ env.commit }}" \
+            --title "v${{ env.version }}"
 name: Tag Release
 on: workflow_call
 permissions:
