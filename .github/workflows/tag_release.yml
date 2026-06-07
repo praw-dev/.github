@@ -8,19 +8,16 @@ jobs:
         with:
           fetch-depth: 3
           persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          cache: pip
-          python-version: 3.x
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
       - name: Install dependencies
-        run: pip install https://github.com/praw-dev/praw-release/archive/afe2ced623a9a7a4d3e96921de942f163f04bc6f.zip # v1.1.1
+        run: uv tool install "praw-release @ https://github.com/praw-dev/praw-release/archive/afe2ced623a9a7a4d3e96921de942f163f04bc6f.zip" # v1.1.1
       - name: Extract Version
         run: |
           git checkout HEAD^2^
           echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
           git log --format=%B -n 1 | praw-release extract-version > tmp_version
           echo "version=$(cat tmp_version)" >> "$GITHUB_ENV"
-          cat tmp_version | python -c 'import sys; from packaging import version; print(int(version.Version(sys.stdin.readline()).is_prerelease))' > tmp_is_prerelease
+          cat tmp_version | uv run --no-project --with packaging python -c 'import sys; from packaging import version; print(int(version.Version(sys.stdin.readline()).is_prerelease))' > tmp_is_prerelease
           echo "is_prerelease=$(cat tmp_is_prerelease)" >> "$GITHUB_ENV"
       - name: Extract Change Log
         run: praw-release changes "$version" > version_changelog
