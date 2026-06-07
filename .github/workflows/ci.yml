@@ -1,98 +1,97 @@
 jobs:
-  lint-multi-os:
-    name: Lint ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: 3.x
-      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-      - name: Install dependencies
-        run: uv pip install --system ".[lint]"
-      - name: Run pre-commit hooks
-        env:
-          SKIP: no-commit-to-branch
-        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
-      - name: Run sphinx
-        if: endsWith(inputs.package, 'praw')
-        run: sphinx-build --keep-going docs/ /tmp/foo
-    strategy:
-      matrix:
-        os: [ macOS-latest, ubuntu-latest, windows-latest ]
-  test-multi-os:
-    name: Test ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: 3.x
-      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-      - name: Install dependencies
-        run: uv pip install --system ".[test]"
-      - name: Test with pytest
-        env:
-          ENSURE_NO_UNUSED_CASSETTES: 1
-        run: pytest
-    strategy:
-      matrix:
-        os: [ macOS-latest, ubuntu-latest, windows-latest ]
-  test-multi-python:
-    name: Test Python ${{ matrix.python-version }}
+  lint:
+    name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: ${{ matrix.python-version }}
       - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-      - name: Install dependencies
-        run: uv pip install --system ".[test]" coverage
-      - name: Test with pytest
-        run: coverage run --source "$PACKAGE" --module pytest
+      - name: Install tox
+        env:
+          PYTHON_VERSION: ${{ inputs.min_python }}
+        run: uv tool install --python-preference only-managed --python "$PYTHON_VERSION" tox --with tox-uv
+      - name: Run lint environments
+        env:
+          SKIP: no-commit-to-branch
+        run: tox run --skip-pkg-install --skip-env py
+  test:
+    name: test with ${{ matrix.env }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        env: ${{ fromJSON(inputs.python_versions) }}
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+      - name: Install tox
+        env:
+          PYTHON_VERSION: ${{ matrix.env }}
+        run: uv tool install --python-preference only-managed --python "$PYTHON_VERSION" tox --with tox-uv
+      - name: Run test suite
         env:
           ENSURE_NO_UNUSED_CASSETTES: 1
-          PACKAGE: ${{ inputs.package }}
-      - name: Check coverage
-        run: coverage report -m --fail-under=100
+          PYTHON_VERSION: ${{ matrix.env }}
+        run: tox run --skip-pkg-install -e "py${PYTHON_VERSION//./}"
+  test-min-python-multi-os:
+    name: test with ${{ inputs.min_python }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        os: [macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+      - name: Install tox
+        env:
+          PYTHON_VERSION: ${{ inputs.min_python }}
+        run: uv tool install --python-preference only-managed --python "$PYTHON_VERSION" tox --with tox-uv
+        shell: bash
+      - name: Run test suite
+        env:
+          ENSURE_NO_UNUSED_CASSETTES: 1
+          PYTHON_VERSION: ${{ inputs.min_python }}
+        run: tox run --skip-pkg-install -e "py${PYTHON_VERSION//./}"
+        shell: bash
   test-network:
-    if: endsWith(inputs.package, 'praw')
+    if: inputs.network_test
     name: Test Network Request
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: 3.x
       - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-      - name: Install dependencies
-        run: uv pip install --system ".[test]"
       - name: Run network test
-        run: pytest tests/integration/test_github_actions.py::test_github_actions
         env:
           NETWORK_TEST_CLIENT_ID: ${{ secrets.NETWORK_TEST_CLIENT_ID }}
           NETWORK_TEST_CLIENT_SECRET: ${{ secrets.NETWORK_TEST_CLIENT_SECRET }}
+        run: uv run --frozen --group test pytest tests/integration/test_github_actions.py::test_github_actions
 name: CI
 on:
   workflow_call:
     inputs:
-      package:
+      min_python:
+        description: The minimum supported python version, also tested on macOS and Windows
+        required: true
+        type: string
+      network_test:
+        default: false
+        description: Whether to run the live network test (requires NETWORK_TEST_* secrets)
+        required: false
+        type: boolean
+      python_versions:
+        description: JSON list of python versions tested on ubuntu
         required: true
         type: string
     secrets:
-      # Only used by test-network, which runs solely for *praw packages.
       NETWORK_TEST_CLIENT_ID:
         required: false
       NETWORK_TEST_CLIENT_SECRET:
