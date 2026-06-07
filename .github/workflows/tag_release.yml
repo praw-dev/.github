@@ -13,7 +13,7 @@ jobs:
           cache: pip
           python-version: 3.x
       - name: Install dependencies
-        run: pip install https://github.com/praw-dev/praw-release/archive/9a9d3162a6bdfcdfa1bac273734f86ddbfdafe40.zip
+        run: pip install https://github.com/praw-dev/praw-release/archive/afe2ced623a9a7a4d3e96921de942f163f04bc6f.zip # v1.1.1
       - name: Extract Version
         run: |
           git checkout HEAD^2^
