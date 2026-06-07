@@ -99,4 +99,10 @@ on:
       package:
         required: true
         type: string
+    secrets:
+      # Only used by test-network, which runs solely for *praw packages.
+      NETWORK_TEST_CLIENT_ID:
+        required: false
+      NETWORK_TEST_CLIENT_SECRET:
+        required: false
 permissions: read-all
