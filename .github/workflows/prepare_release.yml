@@ -15,12 +15,9 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          cache: pip
-          python-version: 3.x
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
       - name: Install dependencies
-        run: pip install https://github.com/praw-dev/praw-release/archive/afe2ced623a9a7a4d3e96921de942f163f04bc6f.zip # v1.1.1
+        run: uv tool install "praw-release @ https://github.com/praw-dev/praw-release/archive/afe2ced623a9a7a4d3e96921de942f163f04bc6f.zip" # v1.1.1
       - name: Prepare Git Variables
         run: |
           git config --global author.email "$GITHUB_ACTOR@users.noreply.github.com"
