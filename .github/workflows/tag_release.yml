@@ -10,7 +10,7 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
       - name: Install dependencies
-        run: uv tool install "praw-release @ https://github.com/praw-dev/praw-release/archive/f0ce3d4e0548578896629ed2e4af946a34f1788d.zip" # v1.2.0
+        run: uv tool install "praw-release @ https://github.com/praw-dev/praw-release/archive/3d8192218ab9e86bd027ee354dc7b9623160e4e8.zip" # v1.2.1
       - name: Extract Version
         run: |
           git checkout HEAD^2^
