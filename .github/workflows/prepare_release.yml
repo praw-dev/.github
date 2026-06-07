@@ -3,37 +3,46 @@ jobs:
     name: Prepare Release v${{ github.event.inputs.version }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # The persisted ssh-key is required for create-pull-request to push a branch
+      # that triggers CI.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          ssh-key: ${{ secrets.SSH_DEPLOY_KEY }}
-      - uses: actions/setup-python@v5
+          ssh-key: ${{ secrets.SSH_DEPLOY_KEY }} # zizmor: ignore[artipacked]
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           cache: pip
           python-version: 3.x
       - name: Install dependencies
-        run: pip install https://github.com/praw-dev/praw-release/archive/main.zip
+        run: pip install https://github.com/praw-dev/praw-release/archive/9a9d3162a6bdfcdfa1bac273734f86ddbfdafe40.zip
       - name: Prepare Git Variables
         run: |
-          git config --global author.email ${{ github.actor }}@users.noreply.github.com
-          git config --global author.name ${{ github.actor }}
+          git config --global author.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git config --global author.name "$GITHUB_ACTOR"
           git config --global committer.email noreply@github.com
           git config --global committer.name GitHub
       - name: Normalize version and update in code
+        env:
+          PACKAGE: ${{ inputs.package }}
+          REQUESTED_VERSION: ${{ inputs.version }}
+          VERSION_FILE: ${{ inputs.version_file }}
         run: |
-          praw-release bump "${{ inputs.package }}" "${{ inputs.version }}" "${{ inputs.package }}/${{ inputs.version_file }}" > tmp_version
-          echo "version=$(cat tmp_version)" >> $GITHUB_ENV
+          praw-release bump "$PACKAGE" "$REQUESTED_VERSION" "$PACKAGE/$VERSION_FILE" > tmp_version
+          echo "version=$(cat tmp_version)" >> "$GITHUB_ENV"
           rm tmp_version
       - name: Commit changes with desired version
-        run: git commit -am "Bump to v${{ env.version }}"
+        run: git commit -am "Bump to v$version"
       - name: Update code with next development version
+        env:
+          PACKAGE: ${{ inputs.package }}
+          VERSION_FILE: ${{ inputs.version_file }}
         run: |
-          praw-release bump "${{ inputs.package }}" unreleased "${{ inputs.package }}/${{ inputs.version_file }}" > tmp_version
-          echo "dev_version=$(cat tmp_version)" >> $GITHUB_ENV
+          praw-release bump "$PACKAGE" unreleased "$PACKAGE/$VERSION_FILE" > tmp_version
+          echo "dev_version=$(cat tmp_version)" >> "$GITHUB_ENV"
           rm tmp_version
       - name: Commit changes with development version
-        run: git commit -am "Set development version v${{ env.dev_version }}"
+        run: git commit -am "Set development version v$dev_version"
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           body: ""
           branch: prepare_release_v${{ env.version }}
