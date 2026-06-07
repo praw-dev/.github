@@ -17,6 +17,10 @@ jobs:
         name: Set Active Docs
         run: python tools/set_active_docs.py
 name: Set Active Docs
-on: workflow_call
+on:
+  workflow_call:
+    secrets:
+      READTHEDOCS_TOKEN:
+        required: true
 permissions:
   contents: read

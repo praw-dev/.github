@@ -2,11 +2,18 @@ jobs:
   auto-update:
     runs-on: ubuntu-latest
     steps:
-      # The persisted ssh-key is required for create-pull-request to push a branch
-      # that triggers CI.
+      # The app token lets create-pull-request push a branch that triggers CI
+      # and open PRs despite the org-wide block on GITHUB_TOKEN PR creation.
+      - id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          permission-contents: write
+          permission-pull-requests: write
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          ssh-key: ${{ secrets.SSH_DEPLOY_KEY }} # zizmor: ignore[artipacked]
+          persist-credentials: false
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           cache: pip
@@ -26,8 +33,14 @@ jobs:
           title: Update pre-commit hooks
           commit-message: Update pre-commit hooks
           body: Update versions of pre-commit hooks to the latest version.
+          token: ${{ steps.app-token.outputs.token }}
 name: Update pre-commit hooks
-on: workflow_call
+on:
+  workflow_call:
+    secrets:
+      APP_ID:
+        required: true
+      APP_PRIVATE_KEY:
+        required: true
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
