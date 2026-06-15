@@ -4,6 +4,9 @@ env:
   stale-close-label: Auto-closed - Stale
 jobs:
   stale:
+    permissions:
+      issues: write # required to comment on and close stale issues
+      pull-requests: write # required to comment on and close stale PRs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/stale@eb5cf3af3ac0a1aa4c9c45633dd1ae542a27a899 # v10.3.0
@@ -29,6 +32,4 @@ jobs:
             Remove the Stale label or comment or this will be closed in ${{ env.days-before-close }} days.
 name: Close stale issues and PRs
 on: workflow_call
-permissions:
-  issues: write
-  pull-requests: write
+permissions: {}
