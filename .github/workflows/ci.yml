@@ -96,4 +96,5 @@ on:
         required: false
       NETWORK_TEST_CLIENT_SECRET:
         required: false
-permissions: read-all
+permissions:
+  contents: read

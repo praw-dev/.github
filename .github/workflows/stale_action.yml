@@ -4,6 +4,7 @@ env:
   stale-close-label: Auto-closed - Stale
 jobs:
   stale:
+    name: Close stale issues and PRs
     permissions:
       issues: write # required to comment on and close stale issues
       pull-requests: write # required to comment on and close stale PRs

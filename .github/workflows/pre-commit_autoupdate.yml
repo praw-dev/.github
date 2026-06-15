@@ -1,5 +1,6 @@
 jobs:
   auto-update:
+    name: Auto-update pre-commit hooks
     runs-on: ubuntu-latest
     steps:
       # The app token lets create-pull-request push a branch that triggers CI
@@ -25,6 +26,9 @@ jobs:
         run: uv run --no-sync pre-commit run --all-files
         continue-on-error: true
       - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        # create-pull-request commits the autoupdate changes, pushes a branch, and
+        # opens the PR -- functionality `gh pr create` alone does not provide.
+        # zizmor: ignore[superfluous-actions]
         with:
           branch: update/pre-commit-hooks
           title: Update pre-commit hooks

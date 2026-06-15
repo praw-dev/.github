@@ -48,6 +48,9 @@ jobs:
       - id: create-pr
         name: Create Pull Request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        # create-pull-request pushes the release branch and opens the PR with the
+        # app token -- functionality `gh pr create` alone does not provide.
+        # zizmor: ignore[superfluous-actions]
         with:
           body: ""
           branch: prepare_release_v${{ env.version }}
