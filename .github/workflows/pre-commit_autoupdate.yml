@@ -25,7 +25,8 @@ jobs:
       - name: Run hooks
         run: uv run --no-sync pre-commit run --all-files
         continue-on-error: true
-      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+      - id: create-pull-request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         # create-pull-request commits the autoupdate changes, pushes a branch, and
         # opens the PR -- functionality `gh pr create` alone does not provide.
         # zizmor: ignore[superfluous-actions]
@@ -35,6 +36,14 @@ jobs:
           commit-message: Update pre-commit hooks
           body: Update versions of pre-commit hooks to the latest version.
           token: ${{ steps.app-token.outputs.token }}
+      - name: Enable auto-merge
+        # Queues the PR to merge once the required checks pass. The app token is
+        # reused because GITHUB_TOKEN is not available to this reusable workflow.
+        if: steps.create-pull-request.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_URL: ${{ steps.create-pull-request.outputs.pull-request-url }}
+        run: gh pr merge --auto --merge "$PR_URL"
 name: Update pre-commit hooks
 on:
   workflow_call:
