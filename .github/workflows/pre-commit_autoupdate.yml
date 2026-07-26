@@ -38,7 +38,9 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
       - name: Enable auto-merge
         # Queues the PR to merge once the required checks pass. The app token is
-        # reused because GITHUB_TOKEN is not available to this reusable workflow.
+        # reused rather than GITHUB_TOKEN because branch protection on main
+        # restricts pushes to the praw-dev-automation app; github-actions[bot] is
+        # not on that allowlist and so cannot complete the merge.
         if: steps.create-pull-request.outputs.pull-request-number
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
