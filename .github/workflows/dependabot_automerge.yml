@@ -3,19 +3,37 @@ jobs:
     name: Dependabot automerge
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     permissions:
-      contents: write # required to merge the pull request
-      pull-requests: write # required to enable auto-merge on the pull request
+      pull-requests: read # required by fetch-metadata, which uses GITHUB_TOKEN
     runs-on: ubuntu-latest
     steps:
+      # GITHUB_TOKEN cannot enable auto-merge here: branch protection on main
+      # restricts pushes to the praw-dev-automation app, and github-actions[bot]
+      # is not on that allowlist, so enablePullRequestAutoMerge fails with "User
+      # is not authorized for this protected branch". The app token is that
+      # allowlisted identity. APP_ID and APP_PRIVATE_KEY must be *Dependabot*
+      # secrets: Dependabot-triggered runs cannot read Actions secrets.
+      - id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          permission-contents: write
+          permission-pull-requests: write
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Fetch Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
       - name: Enable auto-merge
         if: steps.metadata.outputs.update-type != 'version-update:semver-major'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge --auto --merge "$PR_URL"
 name: Dependabot automerge
-on: workflow_call
+on:
+  workflow_call:
+    secrets:
+      APP_ID:
+        required: true
+      APP_PRIVATE_KEY:
+        required: true
 permissions: {}
