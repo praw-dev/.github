@@ -1,6 +1,3 @@
-concurrency:
-  group: lint-${{ github.ref }}
-  cancel-in-progress: true
 jobs:
   actionlint:
     name: actionlint
