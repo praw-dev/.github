@@ -23,7 +23,11 @@ jobs:
         id: metadata
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
       - name: Enable auto-merge
-        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+        # Major bumps are held for manual review, except for GitHub Actions, whose
+        # majors are routine pin moves that the workflow linters and CI already gate.
+        if: >-
+          steps.metadata.outputs.update-type != 'version-update:semver-major'
+          || steps.metadata.outputs.package-ecosystem == 'github_actions'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
